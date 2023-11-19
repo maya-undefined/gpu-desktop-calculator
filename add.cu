@@ -3,7 +3,7 @@
 #include <vector>
 #include <cuda_runtime.h>
 
-#define _CHUNK_SIZE 1024
+#define _CHUNK_SIZE 1024 * 1024 * 50
 
 class FH {
 private:
@@ -12,6 +12,8 @@ private:
 public:
     FH(const std::string &filename) {
         _file = std::ifstream(filename);
+        char* buffer = new char[_CHUNK_SIZE];
+        _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
     }
 
     bool eof() {
@@ -36,6 +38,18 @@ __global__ void addArrays(const float *A, const float *B, float *C, int numEleme
     }
 }
 
+__global__ void complexPhysicsCalculation(const float *A, const float *B, float* C, int numElements) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        // Hypothetical physics-based calculation
+        float temp = A[i] * expf(-B[i] / A[i]);
+        float result = sinf(A[i]) * cosf(B[i]) + temp;
+
+        // Store the result
+        C [i]= result;
+    }
+}
+
 // Main function
 int main(int argc, char *argv[]) {
     // Check for correct argument count
@@ -51,6 +65,8 @@ int main(int argc, char *argv[]) {
     // Write result to file
     std::ofstream outputFile(argv[3]);
 
+    char* buffer = new char[_CHUNK_SIZE];
+    outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
 
     // Allocate memory on the GPU
     float *device_A, *device_B, *device_C;
@@ -71,13 +87,14 @@ int main(int argc, char *argv[]) {
         int threadsPerBlock = 256;
         int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
         addArrays<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
+        complexPhysicsCalculation<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
 
         // Copy result back to host
         std::vector<float> host_C(numElements);
         cudaMemcpy(host_C.data(), device_C, numElements * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
-            outputFile << value << std::endl;
+            outputFile << value << "\n";
         }
 
     }
