@@ -4,8 +4,8 @@
 #include <vector>
 #include <cuda_runtime.h>
 
-#define _CHUNK_SIZE 10 * 1024 * 1024
-#define NUM_STREAMS 1
+#define _CHUNK_SIZE 1 * 1024 * 1024
+#define NUM_STREAMS 5
 
 class FH {
 private:
