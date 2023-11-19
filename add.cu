@@ -1,9 +1,11 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <cuda_runtime.h>
 
-#define _CHUNK_SIZE 1024
+#define _CHUNK_SIZE 10 * 1024 * 1024
+#define NUM_STREAMS 1
 
 class FH {
 private:
@@ -58,29 +60,60 @@ int main(int argc, char *argv[]) {
     cudaMalloc((void **)&device_B, _CHUNK_SIZE * sizeof(float));
     cudaMalloc((void **)&device_C, _CHUNK_SIZE * sizeof(float));
 
+    cudaStream_t streams[NUM_STREAMS];
+    for (int i = 0; i < NUM_STREAMS; ++i) {
+        cudaStreamCreate(&streams[i]);
+    }
+
     while (!host_A_file.eof()) {
-        std::vector<float> host_A = host_A_file.readDataFromFile();
-        std::vector<float> host_B = host_B_file.readDataFromFile();
-        int numElements = host_A.size();
+        std::vector<float> host_A_chunk[NUM_STREAMS];
+        std::vector<float> host_B_chunk[NUM_STREAMS];
+        std::vector<float> host_C_chunk[NUM_STREAMS];
 
-        // Copy data from host to device
-        cudaMemcpy(device_A, host_A.data(), numElements * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(device_B, host_B.data(), numElements * sizeof(float), cudaMemcpyHostToDevice);
-
-        // Launch the CUDA Kernel
-        int threadsPerBlock = 256;
-        int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-        addArrays<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
-
-        // Copy result back to host
-        std::vector<float> host_C(numElements);
-        cudaMemcpy(host_C.data(), device_C, numElements * sizeof(float), cudaMemcpyDeviceToHost);
-
-        for (float value : host_C) {
-            outputFile << value << std::endl;
+        // std::vector<float> host_A = host_A_file.readDataFromFile();
+        // std::vector<float> host_B = host_B_file.readDataFromFile();
+        for (int i = 0; i < NUM_STREAMS; ++i) {
+            host_A_chunk[i] = host_A_file.readDataFromFile();
+            host_B_chunk[i] = host_B_file.readDataFromFile();
         }
 
-    }
+        int numElements = host_A_chunk[0].size();
+
+        for (int i = 0; i < NUM_STREAMS; ++i) {
+
+            // Copy data from host to device
+            // // cudaMemcpy(device_A, host_A.data(), numElements * sizeof(float), cudaMemcpyHostToDevice);
+            // // cudaMemcpy(device_B, host_B.data(), numElements * sizeof(float), cudaMemcpyHostToDevice);
+            // cudaMemcpyAsync(device_A, host_A.data(), numElements * sizeof(float), cudaMemcpyHostToDevice, streams[i]);
+            // cudaMemcpyAsync(device_B, host_B.data(), numElements * sizeof(float), cudaMemcpyHostToDevice, streams[i]);
+            cudaMemcpyAsync(device_A, host_A_chunk[i].data(), _CHUNK_SIZE * sizeof(float), cudaMemcpyHostToDevice, streams[i]);
+            cudaMemcpyAsync(device_B, host_B_chunk[i].data(), _CHUNK_SIZE * sizeof(float), cudaMemcpyHostToDevice, streams[i]);
+
+            // Launch the CUDA Kernel
+            int threadsPerBlock = 256;
+            int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
+            // addArrays<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
+            addArrays<<<blocksPerGrid, threadsPerBlock, 0, streams[i]>>>(device_A, device_B, device_C, _CHUNK_SIZE);
+
+            // Copy result back to host
+            // std::vector<float> host_C(numElements);
+            // cudaMemcpy(host_C.data(), device_C, numElements * sizeof(float), cudaMemcpyDeviceToHost);
+            host_C_chunk[i].resize(numElements);
+            cudaMemcpyAsync(host_C_chunk[i].data(), device_C, _CHUNK_SIZE * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+
+        } // for each stream
+
+        // Synchronize streams
+        for (int i = 0; i < NUM_STREAMS; ++i) {
+            cudaStreamSynchronize(streams[i]);
+        }
+
+        for (int i = 0; i < NUM_STREAMS; i ++) {
+            for (float value : host_C_chunk[i]) {
+                outputFile << std::fixed << std::setprecision(6) << value << std::endl;
+            }            
+        }
+    } // while data exists
 
     // Free device memory
     cudaFree(device_A);
