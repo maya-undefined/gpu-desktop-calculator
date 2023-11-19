@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
         int threadsPerBlock = 256;
         int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
         addArrays<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
-        complexPhysicsCalculation<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
+        // complexPhysicsCalculation<<<blocksPerGrid, threadsPerBlock>>>(device_A, device_B, device_C, numElements);
 
         // Copy result back to host
         std::vector<float> host_C(numElements);
