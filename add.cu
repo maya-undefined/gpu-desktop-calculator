@@ -19,15 +19,51 @@ public:
     bool eof() {
         return _file.eof();
     }
+    std::vector<float> parse_line_of_floats(const std::string& line) {
+        std::vector<float> numbers;
+        const char* str = line.c_str();
+        char* end;
+
+        while (true) {
+            float num = std::strtof(str, &end);
+            if ( end == str) break;
+            numbers.push_back(num);
+            str = end;
+        }
+
+        return numbers;
+    }
+    static size_t total_vector_size(std::vector<std::vector<float> > data) {
+        size_t total_size = 0;
+        for (std::vector<float> _d : data) {
+            total_size += _d.size();
+        }
+        return total_size;
+    }
 
     std::vector<float> readDataFromFile() {
-        std::vector<float> data;
-        float value;
-        while (data.size() < _chunksize) {
-            if (!(_file >>value)) break;
-            data.push_back(value);
+        std::vector<std::vector<float> > data;
+        std::string line;
+
+        size_t total_size = 0;
+
+        while (total_size < _chunksize) {
+            if (!(std::getline(_file, line))) break;
+
+            std::vector<float> numbers = parse_line_of_floats(line);
+
+            if (data.size() == 0) {
+                data.resize(numbers.size());
+            }
+
+            for (int i = 0; i < numbers.size(); i++) {
+                data[i].push_back(numbers[i]);
+            }
+
+            total_size = total_vector_size(data);
         }
-        return data;
+
+        return data[0];
     }
 };
 
