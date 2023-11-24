@@ -48,20 +48,18 @@ public:
         std::string line;
 
         size_t total_size = 0;
-
+        int cur_row = 0;
         while (total_size < _chunksize) {
             if (!(std::getline(_file, line))) break;
 
             std::vector<float> numbers = parse_line_of_floats(line);
 
-            if (data.size() == 0) {
-                data.resize(numbers.size());
-            }
+            data.resize(cur_row+1);
 
             for (int i = 0; i < numbers.size(); i++) {
-                data[i].push_back(numbers[i]);
+                data[cur_row].push_back(numbers[i]);
             }
-
+            cur_row++;
             total_size = total_vector_size(data);
         }
 
@@ -157,9 +155,9 @@ int main(int argc, char *argv[]) {
         dim3 gridSize((numElements + blockSize.x - 1) / blockSize.x);
         addMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
-                host_A[0].size(), host_B[0].size(),
-                host_A.size(), host_B.size() // rows
-                ); // columns
+                host_A.size(), host_B.size(), // rows
+                host_A[0].size(), host_B[0].size() // columns
+                ); 
 
         // Copy result back to host
         std::vector<float> host_C(host_A[0].size());
