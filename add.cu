@@ -124,19 +124,13 @@ int main(int argc, char *argv[]) {
     char* buffer = new char[_CHUNK_SIZE];
     outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
 
-
-    // cudaMalloc((void **)&device_A, _CHUNK_SIZE * sizeof(float));
-    // cudaMalloc((void **)&device_B, _CHUNK_SIZE * sizeof(float));
-
     while (!host_A_file.eof()) {
         std::vector<std::vector<float> > host_A = host_A_file.readDataFromFile();
         std::vector<std::vector<float> > host_B = host_B_file.readDataFromFile();
         int numElements = host_A.size();
 
         // Allocate memory on the GPU
-        // these will memoryleak
         float *device_C;
-        // float *device_A[numElements], *device_B[numElements];
         float **device_A, **device_B;
 
         cudaMalloc((void **)&device_C, _CHUNK_SIZE * sizeof(float));
@@ -155,25 +149,6 @@ int main(int argc, char *argv[]) {
         cudaMalloc(&device_B, flat_B.size() * sizeof(float));
         cudaMemcpy(device_A, flat_A.data(), flat_A.size() * sizeof(float), cudaMemcpyHostToDevice);
         cudaMemcpy(device_B, flat_B.data(), flat_B.size() * sizeof(float), cudaMemcpyHostToDevice);
-
-        // // Copy data from host to device
-        // for (int i = 0 ; i < host_A.size(); i++) {
-        //     // for (int j = 0; j < host_A[i].size(); j++)
-        //     //     std::cout << host_A[i][j];
-        //     // std::cout << "\n";
-        //     device_A[i] = new float(host_A[i].size());
-        //     cudaMalloc(&device_A[i], host_A[i].size() * sizeof(float));
-        //     cudaMemcpy(device_A[i], host_A[i].data(), host_A[i].size() * sizeof(float), cudaMemcpyHostToDevice);
-        // }
-
-        // for (int i = 0 ; i < host_B.size(); i++) {
-        //     // for (int j = 0; j < host_B[i].size(); j++)
-        //     //     std::cout << host_B[i][j];
-        //     // std::cout << "\n";
-        //     device_B[i] = new float(host_B[i].size());
-        //     cudaMalloc(&device_B[i], host_B[i].size() * sizeof(float));
-        //     cudaMemcpy(device_B[i], host_B[i].data(), host_B[i].size() * sizeof(float), cudaMemcpyHostToDevice);
-        // }
 
         // Launch the CUDA Kernel
         dim3 blockSize(256);
