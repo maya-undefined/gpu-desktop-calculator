@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
                 ); 
 
         // Copy result back to host
-        std::vector<float> host_C(host_A[0].size());
+        std::vector<float> host_C(host_A.size());
         cudaMemcpy(host_C.data(), device_C, host_A.size() * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
