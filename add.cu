@@ -69,21 +69,23 @@ public:
     }
 };
 
-__global__ void addMultipleArrays(float **A, float **B, float *C, int A_s, int B_s, int numElements) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < numElements) {
+__global__ void addMultipleArrays(float *A, float *B, float *C, int A_rows, int B_rows, int A_cols, int B_cols) {
+    int row = blockDim.x * blockIdx.x + threadIdx.x;
+    if (row < A_rows) {
         float sum_A = 0;
         float sum_B = 0;
-        for (int j = 0; j < A_s; ++j) {
-            sum_A += A[i][j];
+        for (int col = 0; col < A_cols; ++A_cols) {
+            int idx = A_rows * A_cols + col;
+            sum_A += A[idx];
         }
 
-        for (int j = 0; j < A_s; ++j) {
-            sum_B += B[i][j];
+        for (int col = 0; col < B_cols; ++B_cols) {
+            int idx = B_rows * B_cols + col;
+            sum_B += B[idx];
         }
 
         
-        C[i] = sum_A + sum_B;
+        C[row] = sum_A + sum_B;
     }
 }
 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[]) {
 
         // Allocate memory on the GPU
         float *device_C;
-        float **device_A, **device_B;
+        float *device_A, *device_B;
 
         cudaMalloc((void **)&device_C, _CHUNK_SIZE * sizeof(float));
 
@@ -156,11 +158,11 @@ int main(int argc, char *argv[]) {
         addMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
                 host_A.size(), host_B.size(), // rows
-                host_A[0].size());            // columns
+                host_A[0].size(), host_B[0].size()); // columns
 
         // Copy result back to host
-        std::vector<float> host_C(numElements);
-        cudaMemcpy(host_C.data(), device_C, numElements * sizeof(float), cudaMemcpyDeviceToHost);
+        std::vector<float> host_C(host_A[0].size());
+        cudaMemcpy(host_C.data(), device_C, host_A.size() * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
             outputFile << value << "\n";
