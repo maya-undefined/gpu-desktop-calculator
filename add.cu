@@ -3,8 +3,8 @@
 #include <vector>
 #include <cuda_runtime.h>
 
-// #define _CHUNK_SIZE 1024 * 1024 * 50
-#define _CHUNK_SIZE 1
+#define _CHUNK_SIZE 1024 * 1024 * 50
+// #define _CHUNK_SIZE 1
 
 class FH {
 private:
@@ -148,6 +148,7 @@ int main(int argc, char *argv[]) {
 
     size_t A_rows, A_cols, B_rows, B_cols;
     A_rows = 0; A_cols = 1; B_rows = 0; B_cols = 1;
+    size_t loops = 0;
     while (!host_A_file.eof()) {
         std::vector<float> host_A = host_A_file.read_data_from_file();
         std::vector<float> host_B = host_B_file.read_data_from_file();
@@ -164,10 +165,10 @@ int main(int argc, char *argv[]) {
         
         // cudaMalloc(&device_A, host_A.size() * sizeof(float));
         // cudaMalloc(&device_B, host_B.size() * sizeof(float));
-        cudaMalloc((void **)&device_A, A_rows*A_cols * sizeof(float));
-        cudaMalloc((void **)&device_B, host_B_file.row_len()*host_B_file.col_len() * sizeof(float));
-        cudaMemcpy(device_A, host_A.data(), A_rows*A_cols * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(device_B, host_B.data(), B_rows*B_cols * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMalloc((void **)&device_A, host_A.size() * sizeof(float));
+        cudaMalloc((void **)&device_B, host_B.size() * sizeof(float));
+        cudaMemcpy(device_A, host_A.data(), host_A.size() * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(device_B, host_B.data(), host_B.size() * sizeof(float), cudaMemcpyHostToDevice);
 
         // Launch the CUDA Kernel
         dim3 blockSize(256);
@@ -185,6 +186,7 @@ int main(int argc, char *argv[]) {
         for (float value : host_C) {
             outputFile << value << "\n";
         }
+        loops++;
     }
 
     cudaFree(device_A);
