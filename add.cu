@@ -16,8 +16,8 @@ public:
     FH(const std::string &filename) {
         _file_name = filename;
         _file = std::ifstream(filename);
-        char* buffer = new char[_CHUNK_SIZE];
-        _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+        // char* buffer = new char[_CHUNK_SIZE];
+        // _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
         _row_len = 0;
         _col_len = 0;
     }
@@ -27,15 +27,6 @@ public:
     }
 
     size_t col_len() {
-        // std::ifstream = std::ifstream(_file_name);
-        // std::string line;
-        // size_t res = 0;
-        // if ((std::getline(_file_name, line))) {
-        //     std::vector<float> numbers = parse_line_of_floats(line);
-        //     res = numbers.size();
-        // }
-
-        // return res;
         return _col_len;
     }
 
@@ -148,8 +139,8 @@ int main(int argc, char *argv[]) {
     // Write result to file
     std::ofstream outputFile(argv[3]);
 
-    char* buffer = new char[_CHUNK_SIZE];
-    outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+    // char* buffer = new char[_CHUNK_SIZE];
+    // outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
     // Allocate memory on the GPU
     float *device_C;
     float *device_A, *device_B;
