@@ -1,4 +1,4 @@
-# gdc
+# gpu-desktop-calculator
 
 need to add two columns of numbers an exabyte in size from the cli?
 
