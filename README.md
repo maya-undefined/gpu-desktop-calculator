@@ -1,6 +1,6 @@
 # gdc
 
-need to add a column of numbers an exabyte in size from the cli?
+need to add two columns of numbers an exabyte in size from the cli?
 
 ## usage
 
