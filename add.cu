@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) {
 
         cudaMalloc((void **)&device_C, _CHUNK_SIZE * sizeof(float));
 
+        // GPUs like contigious, flat lengths of memory
         std::vector<float> flat_A;
         std::vector<float> flat_B;
         for (const auto& row: host_A) {
