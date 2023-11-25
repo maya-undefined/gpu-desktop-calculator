@@ -8,17 +8,42 @@
 class FH {
 private:
     std::ifstream _file;
+    std::string _file_name;
     const uint _chunksize = _CHUNK_SIZE;
+    size_t _row_len;
+    size_t _col_len;
 public:
     FH(const std::string &filename) {
+        _file_name = filename;
         _file = std::ifstream(filename);
         char* buffer = new char[_CHUNK_SIZE];
         _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+        _row_len = 0;
+        _col_len = 0;
     }
 
     bool eof() {
         return _file.eof();
     }
+
+    size_t col_len() {
+        // std::ifstream = std::ifstream(_file_name);
+        // std::string line;
+        // size_t res = 0;
+        // if ((std::getline(_file_name, line))) {
+        //     std::vector<float> numbers = parse_line_of_floats(line);
+        //     res = numbers.size();
+        // }
+
+        // return res;
+        return _col_len;
+    }
+
+    size_t row_len() {
+        // only call this after calling read_data_from_file >_< sry
+        return _row_len;
+    }
+
     std::vector<float> parse_line_of_floats(const std::string& line) {
         std::vector<float> numbers;
         const char* str = line.c_str();
@@ -35,6 +60,7 @@ public:
 
         return numbers;
     }
+
     static size_t total_vector_size(std::vector<std::vector<float> > data) {
         size_t total_size = 0;
         for (std::vector<float> _d : data) {
@@ -43,9 +69,11 @@ public:
         return total_size;
     }
 
-    std::vector<std::vector<float> > readDataFromFile() {
-        std::vector<std::vector<float> > data;
+    std::vector<float> read_data_from_file() {
+        // GPUs like contigious, flat lengths of memory
+
         std::string line;
+        std::vector<float> data;
 
         size_t total_size = 0;
         int cur_row = 0;
@@ -53,14 +81,13 @@ public:
             if (!(std::getline(_file, line))) break;
 
             std::vector<float> numbers = parse_line_of_floats(line);
-
-            data.resize(cur_row+1);
-
-            for (int i = 0; i < numbers.size(); i++) {
-                data[cur_row].push_back(numbers[i]);
+            if (_col_len == 0) {
+                _col_len = numbers.size();
             }
-            cur_row++;
-            total_size = total_vector_size(data);
+
+            data.insert(data.end(), numbers.begin(), numbers.end());
+            _row_len += 1;
+            total_size += numbers.size();
         }
 
         return data;
@@ -123,56 +150,44 @@ int main(int argc, char *argv[]) {
 
     char* buffer = new char[_CHUNK_SIZE];
     outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+    // Allocate memory on the GPU
+    float *device_C;
+    float *device_A, *device_B;
 
     while (!host_A_file.eof()) {
-        std::vector<std::vector<float> > host_A = host_A_file.readDataFromFile();
-        std::vector<std::vector<float> > host_B = host_B_file.readDataFromFile();
+        std::vector<float> host_A = host_A_file.read_data_from_file();
+        std::vector<float> host_B = host_B_file.read_data_from_file();
         int numElements = host_A.size();
-
-        // Allocate memory on the GPU
-        float *device_C;
-        float *device_A, *device_B;
 
         cudaMalloc((void **)&device_C, _CHUNK_SIZE * sizeof(float));
 
-        // GPUs like contigious, flat lengths of memory
-        std::vector<float> flat_A;
-        std::vector<float> flat_B;
-        for (const auto& row: host_A) {
-            flat_A.insert(flat_A.end(), row.begin(), row.end());
-        }
-
-        for (const auto& row: host_B) {
-            flat_B.insert(flat_B.end(), row.begin(), row.end());
-        }
         
-        cudaMalloc(&device_A, flat_A.size() * sizeof(float));
-        cudaMalloc(&device_B, flat_B.size() * sizeof(float));
-        cudaMemcpy(device_A, flat_A.data(), flat_A.size() * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(device_B, flat_B.data(), flat_B.size() * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMalloc(&device_A, host_A.size() * sizeof(float));
+        cudaMalloc(&device_B, host_B.size() * sizeof(float));
+        cudaMemcpy(device_A, host_A.data(), host_A.size() * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(device_B, host_B.data(), host_B.size() * sizeof(float), cudaMemcpyHostToDevice);
 
         // Launch the CUDA Kernel
         dim3 blockSize(256);
         dim3 gridSize((numElements + blockSize.x - 1) / blockSize.x);
         addMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
-                host_A.size(), host_B.size(), // rows
-                host_A[0].size(), host_B[0].size() // columns
+                host_A_file.row_len(), host_B_file.row_len(), // rows
+                host_A_file.col_len(), host_B_file.col_len() // columns
                 ); 
 
         // Copy result back to host
-        std::vector<float> host_C(host_A.size());
-        cudaMemcpy(host_C.data(), device_C, host_A.size() * sizeof(float), cudaMemcpyDeviceToHost);
+        std::vector<float> host_C(host_A_file.row_len());
+        cudaMemcpy(host_C.data(), device_C, host_A_file.row_len() * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
             outputFile << value << "\n";
         }
-
-        cudaFree(device_A);
-        cudaFree(device_B);
-        cudaFree(device_C);
     }
 
+    cudaFree(device_A);
+    cudaFree(device_B);
+    cudaFree(device_C);
 
 
     return 0;
