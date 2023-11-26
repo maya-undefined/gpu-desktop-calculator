@@ -20,3 +20,22 @@ __global__ void addMultipleArrays(float *A, float *B, float *C, int A_rows, int 
         C[row] = sum;
     }
 }
+
+__global__ void addArrays(const float *A, const float *B, float *C, int numElements) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        C[i] = A[i] + B[i];
+    }
+}
+
+__global__ void complexPhysicsCalculation(const float *A, const float *B, float* C, int numElements) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < numElements) {
+        // Hypothetical physics-based calculation
+        float temp = A[i] * expf(-B[i] / A[i]);
+        float result = sinf(A[i]) * cosf(B[i]) + temp;
+
+        // Store the result
+        C[i]= result;
+    }
+}
