@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <cuda_runtime.h>
@@ -150,21 +151,22 @@ int main(int argc, char *argv[]) {
     A_rows = 0; A_cols = 1; B_rows = 0; B_cols = 1;
     size_t loops = 0;
     while (!host_A_file.eof()) {
+        A_rows = host_A_file.row_len();
+        B_rows = host_B_file.row_len();
+        // Remember how many rows we read so far
+
         std::vector<float> host_A = host_A_file.read_data_from_file();
         std::vector<float> host_B = host_B_file.read_data_from_file();
         int numElements = host_A.size();
 
         A_rows = host_A_file.row_len() - A_rows;
         B_rows = host_B_file.row_len() - B_rows;
+        // and now we can calculate how many rows we need to process in this chunk
 
         if (B_cols != host_B_file.col_len()) { B_cols = host_B_file.col_len(); }
         if (A_cols != host_A_file.col_len()) { A_cols = host_A_file.col_len(); }
 
         cudaMalloc((void **)&device_C, A_rows*A_cols * sizeof(float));
-
-        
-        // cudaMalloc(&device_A, host_A.size() * sizeof(float));
-        // cudaMalloc(&device_B, host_B.size() * sizeof(float));
         cudaMalloc((void **)&device_A, host_A.size() * sizeof(float));
         cudaMalloc((void **)&device_B, host_B.size() * sizeof(float));
         cudaMemcpy(device_A, host_A.data(), host_A.size() * sizeof(float), cudaMemcpyHostToDevice);
@@ -180,13 +182,17 @@ int main(int argc, char *argv[]) {
                 ); 
 
         // Copy result back to host
-        std::vector<float> host_C(min(host_A.size(), host_B.size()));
-        cudaMemcpy(host_C.data(), device_C, A_rows * A_cols * sizeof(float), cudaMemcpyDeviceToHost);
+        // we only need to keep track of how many elements since we are using a flat array
+        std::vector<float> host_C(max(host_A.size(), host_B.size()));
+        cudaMemcpy(host_C.data(), device_C, max(host_A.size(), host_B.size()) * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
-            outputFile << value << "\n";
+            outputFile << std::fixed << std::setprecision(6) << value << "\n";
         }
         loops++;
+// cudaFree(device_A);
+// cudaFree(device_B);
+// cudaFree(device_C);
     }
 
     cudaFree(device_A);
