@@ -18,8 +18,8 @@ public:
     FH(const std::string &filename) {
         _file_name = filename;
         _file = std::ifstream(filename);
-        // char* buffer = new char[_CHUNK_SIZE];
-        // _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+        char* buffer = new char[_CHUNK_SIZE];
+        _file.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
         _row_len = 0;
         _col_len = 0;
     }
@@ -141,8 +141,8 @@ int main(int argc, char *argv[]) {
     // Write result to file
     std::ofstream outputFile(argv[3]);
 
-    // char* buffer = new char[_CHUNK_SIZE];
-    // outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
+    char* buffer = new char[_CHUNK_SIZE];
+    outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
     // Allocate memory on the GPU
     float *device_C;
     float *device_A, *device_B;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
         if (B_cols != host_B_file.col_len()) { B_cols = host_B_file.col_len(); }
         if (A_cols != host_A_file.col_len()) { A_cols = host_A_file.col_len(); }
 
-        cudaMalloc((void **)&device_C, A_rows*A_cols * sizeof(float));
+        cudaMalloc((void **)&device_C, host_A.size() * sizeof(float));
         cudaMalloc((void **)&device_A, host_A.size() * sizeof(float));
         cudaMalloc((void **)&device_B, host_B.size() * sizeof(float));
         cudaMemcpy(device_A, host_A.data(), host_A.size() * sizeof(float), cudaMemcpyHostToDevice);
@@ -183,8 +183,9 @@ int main(int argc, char *argv[]) {
 
         // Copy result back to host
         // we only need to keep track of how many elements since we are using a flat array
-        std::vector<float> host_C(max(host_A.size(), host_B.size()));
-        cudaMemcpy(host_C.data(), device_C, max(host_A.size(), host_B.size()) * sizeof(float), cudaMemcpyDeviceToHost);
+        size_t ele_to_read = max(A_rows, B_rows);
+        std::vector<float> host_C(ele_to_read);
+        cudaMemcpy(host_C.data(), device_C, ele_to_read * sizeof(float), cudaMemcpyDeviceToHost);
 
         for (float value : host_C) {
             outputFile << std::fixed << std::setprecision(6) << value << "\n";
