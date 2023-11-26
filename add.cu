@@ -138,7 +138,6 @@ int main(int argc, char *argv[]) {
 
         std::vector<float> host_A = host_A_file.read_data_from_file();
         std::vector<float> host_B = host_B_file.read_data_from_file();
-        int numElements = host_A.size();
 
         A_rows = host_A_file.row_len() - A_rows;
         B_rows = host_B_file.row_len() - B_rows;
