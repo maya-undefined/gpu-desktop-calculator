@@ -4,7 +4,7 @@
 #include <vector>
 #include <cuda_runtime.h>
 
-#define _CHUNK_SIZE 1024 * 1024 * 50
+#define _CHUNK_SIZE 1024 * 64 * 1024
 // #define _CHUNK_SIZE 1
 
 class FH {
@@ -69,7 +69,6 @@ public:
         std::vector<float> data;
 
         size_t total_size = 0;
-        int cur_row = 0;
         while (total_size < _chunksize) {
             if (!(std::getline(_file, line))) break;
 
@@ -173,7 +172,7 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(device_B, host_B.data(), host_B.size() * sizeof(float), cudaMemcpyHostToDevice);
 
         // Launch the CUDA Kernel
-        dim3 blockSize(256);
+        dim3 blockSize(768);
         dim3 gridSize((A_rows + blockSize.x - 1) / blockSize.x);
         addMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
@@ -191,15 +190,10 @@ int main(int argc, char *argv[]) {
             outputFile << std::fixed << std::setprecision(6) << value << "\n";
         }
         loops++;
-// cudaFree(device_A);
-// cudaFree(device_B);
-// cudaFree(device_C);
+        cudaFree(device_A);
+        cudaFree(device_B);
+        cudaFree(device_C);
     }
-
-    cudaFree(device_A);
-    cudaFree(device_B);
-    cudaFree(device_C);
-
 
     return 0;
 }

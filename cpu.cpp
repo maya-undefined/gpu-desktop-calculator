@@ -23,13 +23,31 @@ public:
     bool eof() {
         return _file.eof();
     }
+    std::vector<float> parse_line_of_floats(const std::string& line) {
+        std::vector<float> numbers;
+        const char* str = line.c_str();
+        char* end = NULL;
 
-    std::vector<float> readDataFromFile() {
-        std::vector<float> data;
+        while (true) {
+            float num = std::strtof(str, &end);
+            // is this safe?
+
+            if ( end == str) break;
+            numbers.push_back(num);
+            str = end;
+        }
+
+        return numbers;
+    }
+    std::vector<std::vector<float> > readDataFromFile() {
+        std::vector<std::vector<float> > data;
+        std::string line;
         float value;
         while (data.size() < _chunksize) {
-            if (!(_file >>value)) break;
-            data.push_back(value);
+            if (!(std::getline(_file, line))) break;
+
+            std::vector<float> numbers = parse_line_of_floats(line);
+            data.push_back(numbers);
         }
         return data;
     }
@@ -51,17 +69,26 @@ int main(int argc, char *argv[]) {
     outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
 
     while (!host_A_file.eof()) {
-        std::vector<float> host_A = host_A_file.readDataFromFile();
-        std::vector<float> host_B = host_B_file.readDataFromFile();
+        std::vector<std::vector<float> > host_A = host_A_file.readDataFromFile();
+        std::vector<std::vector<float> > host_B = host_B_file.readDataFromFile();
 
         for (int i = 0; i < host_A.size(); i++) {
-            float value = host_A[i] + host_B[i];
+            float sum = 0;
+            for (int j = 0; j < host_A[i].size(); j++) {
+                sum += host_A[i][j];
+            }
+
+            for (int j = 0; j < host_B[i].size(); j++) {
+                sum += host_B[i][j];
+            }
+
+            // float value = host_A[i] + host_B[i];
             // float temp = host_A[i] * std::exp(-host_B[i] / host_A[i]);
             // float value = std::sin(host_A[i]) * std::cos(host_B[i]) + temp;
 
             // Store the result
             // C [i]= result;
-            outputFile << std::fixed << std::setprecision(6) << value << "\n";
+            outputFile << std::fixed << std::setprecision(6) << sum << "\n";
         }
     }
 }
