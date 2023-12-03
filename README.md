@@ -4,7 +4,7 @@
 
 This project is a GPU-accelerated calculator designed for high-performance computations. It supports basic arithmetic operations, trigonometric functions, and (eventually) statistical calculations such as mean, median, and standard deviation. The calculator is built using CUDA and is optimized for NVIDIA GPUs.
 
-Perfect if you need to add two absurdly large columns of numbers in size from the cli.
+Perfect if you need to add two absurdly large columns of numbers from the cli.
 
 Definitely work-in-progress. I eventually want to do more complex calculations you might find in AI
 
