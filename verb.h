@@ -25,25 +25,15 @@ public:
 	void dispatch();
 };
 
-class Add : public Verb {
-	using Verb::Verb;
-	void execute () override;
+#define DECLARE_VERB(ClassName) \
+class ClassName : public Verb { \
+	using Verb::Verb; \
+	void execute () override; \
 };
 
-class Exp : public Verb {
-	using Verb::Verb;
-	void execute() override;
-
-};
-
-class Mul : public Verb {
-	using Verb::Verb;
-	void execute() override;
-};
-
-class Div : public Verb {
-	using Verb::Verb;
-	void execute() override;
-};
+DECLARE_VERB(Add)
+DECLARE_VERB(Exp)
+DECLARE_VERB(Mul)
+DECLARE_VERB(Div)
 
 #endif
