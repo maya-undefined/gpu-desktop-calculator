@@ -11,17 +11,20 @@
 // Main function
 int main(int argc, char *argv[]) {
     // Check for correct argument count
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <file1> <file2> <output_file>" << std::endl;
+    if (argc != 5) {
+        std::cerr << "Usage: " << argv[0] << " <verb> <file1> <file2> <output_file>" << std::endl;
+        std::cert << "Verb: (add|mul)" << std::endl; 
         return 1;
     }
 
     // Read data from files
-    FH host_A_file(argv[1]);
-    FH host_B_file(argv[2]);
+    FH host_A_file(argv[2]);
+    FH host_B_file(argv[3]);
+
+    std::string verb = std::string(argv[1]);
 
     // Write result to file
-    std::ofstream outputFile(argv[3]);
+    std::ofstream outputFile(argv[4]);
 
     char* buffer = new char[_CHUNK_SIZE];
     outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
