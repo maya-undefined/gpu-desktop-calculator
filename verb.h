@@ -10,22 +10,30 @@
 
 class Verb {
 private:
-	FH * _file1 = nullptr;
-	FH * _file2 = nullptr;
+	FH * host_A_file = nullptr;
+	FH * host_B_file = nullptr;
+    std::ofstream *outputFilePtr = nullptr;
 	int i = _CHUNK_SIZE;
 public:
-	Verb(std::string file1, std::string file2);
-	Verb(std::string file1);
+	Verb(std::string file1, std::string file2, std::string outputFile);
+	Verb(std::string file1, std::string outputFile);
 	virtual void execute() {};
+	virtual void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) {};
+
 	void dispatch();
 };
 
 class Add : public Verb {
 	using Verb::Verb;
-	void execute () override;
-	// void execute() {
-	// 	std::cout << "Add" << std::endl;
-	// }
+	void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) override;
+	void execute () override {};
+};
+
+class Exp : public Verb {
+	using Verb::Verb;
+	void execute() override;
+	void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) override {};
+
 };
 
 #endif
