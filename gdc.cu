@@ -1,12 +1,6 @@
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <vector>
-#include <cuda_runtime.h>
-#include "FH.h"
 #include "gdc.h"
-#include "kernels.h"
-
+#include "FH.h"
+#include "verb.h"
 
 // Main function
 int main(int argc, char *argv[]) {
@@ -36,6 +30,9 @@ int main(int argc, char *argv[]) {
 
     float *device_C;
     float *device_A, *device_B;
+
+    Add add(argv[2], argv[3]);
+    add.dispatch();
 
     size_t A_rows, A_cols, B_rows, B_cols;
     A_rows = 0; A_cols = 1; B_rows = 0; B_cols = 1;

@@ -1,5 +1,4 @@
 #include "FH.h"
-#include "gdc.h"
 
  FH::FH(const std::string &filename) {
         _file_name = filename;

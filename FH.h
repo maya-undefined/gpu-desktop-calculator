@@ -1,3 +1,6 @@
+#ifndef _FH_H
+#define _FH_H
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -20,3 +23,5 @@ public:
     static size_t total_vector_size(std::vector<std::vector<float> > data);
     std::vector<float> read_data_from_file();
 };
+
+#endif
