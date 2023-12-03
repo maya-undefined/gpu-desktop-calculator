@@ -10,19 +10,19 @@
 
 class Verb {
 private:
-	std::string _verb;
 	FH * _file1 = nullptr;
 	FH * _file2 = nullptr;
 	int i = _CHUNK_SIZE;
 public:
-	Verb(std::string verb, std::string file1, std::string file2);
-	Verb(std::string verb, std::string file1);
-	virtual void execute();
+	Verb(std::string file1, std::string file2);
+	Verb(std::string file1);
+	virtual void execute() {};
 	void dispatch();
 };
 
-class Add : Verb {
-	void execute();
+class Add : public Verb {
+	using Verb::Verb;
+	void execute () override;
 	// void execute() {
 	// 	std::cout << "Add" << std::endl;
 	// }
