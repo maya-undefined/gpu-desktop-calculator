@@ -1,4 +1,4 @@
-![License](https://img.shields.io/github/license/maya-undefined/gpu-desktop-calculator.svg) ![Version](https://img.shields.io/github/v/tag/maya-undefined/gpu-desktop-calculator.svg)
+![License](https://img.shields.io/github/license/maya-undefined/gpu-desktop-calculator.svg) ![Version](https://img.shields.io/github/v/tag/maya-undefined/gpu-desktop-calculator.svg) ![Languages](https://img.shields.io/github/languages/top/maya-undefined/gpu-desktop-calculator.svg)
 
 # gpu-desktop-calculator
 
