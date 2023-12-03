@@ -36,4 +36,14 @@ class Exp : public Verb {
 
 };
 
+class Mul : public Verb {
+	using Verb::Verb;
+	void execute() override;
+};
+
+class Div : public Verb {
+	using Verb::Verb;
+	void execute() override;
+};
+
 #endif
