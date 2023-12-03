@@ -1,4 +1,4 @@
 * what if someone wants to use long doubles?
 * stream output to stdout instead of a file
 * broadcast scalars to operations (i.e., invert a column)
-
+* operations like exp, sin, cos, and tan should output multiple columns
