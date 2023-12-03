@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(device_B, host_B.data(), host_B.size() * sizeof(float), cudaMemcpyHostToDevice);
 
         // Launch the CUDA Kernel
-        dim3 blockSize(768);
+        dim3 blockSize(256);
         dim3 gridSize((A_rows + blockSize.x - 1) / blockSize.x);
         addMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
