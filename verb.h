@@ -14,25 +14,25 @@ private:
 	FH * host_B_file = nullptr;
     std::ofstream *outputFilePtr = nullptr;
 	int i = _CHUNK_SIZE;
+protected:
+	size_t A_cols, A_rows, B_cols, B_rows;
+	float *device_A, *device_B, *device_C;
 public:
 	Verb(std::string file1, std::string file2, std::string outputFile);
 	Verb(std::string file1, std::string outputFile);
 	virtual void execute() {};
-	virtual void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) {};
 
 	void dispatch();
 };
 
 class Add : public Verb {
 	using Verb::Verb;
-	void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) override;
-	void execute () override {};
+	void execute () override;
 };
 
 class Exp : public Verb {
 	using Verb::Verb;
 	void execute() override;
-	void execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) override {};
 
 };
 

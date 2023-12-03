@@ -14,16 +14,12 @@ Verb::Verb(std::string file1, std::string file2, std::string outputFile) {
 }
 
 void Verb::dispatch() {
-       float *device_C;
-       float *device_A, *device_B;
        if (host_B_file == nullptr) {
               // 1 file operations
               std::cout << "verb::dispatch 1 file" << std::endl;
               execute();
        } else {
 
-              size_t A_rows, A_cols, B_rows, B_cols;
-              A_rows = 0; A_cols = 1; B_rows = 0; B_cols = 1;
               size_t loops = 0;
               while (!host_A_file->eof()) {
                      A_rows = host_A_file->row_len();
@@ -46,7 +42,7 @@ void Verb::dispatch() {
                      cudaMemcpy(device_A, host_A.data(), host_A.size() * sizeof(float), cudaMemcpyHostToDevice);
                      cudaMemcpy(device_B, host_B.data(), host_B.size() * sizeof(float), cudaMemcpyHostToDevice);
 
-                     execute(A_rows, A_cols, B_rows, B_cols, device_C, device_B, device_A);
+                     execute();
 
                      // Copy result back to host
                      // we only need to keep track of how many elements since we are using a flat array
@@ -66,7 +62,7 @@ void Verb::dispatch() {
        } // if 1 file or 2 file operations
 }
 
-void Add::execute(size_t A_rows, size_t A_cols, size_t B_rows, size_t B_cols, float *device_C, float *device_B, float *device_A ) {
+void Add::execute() {
        dim3 blockSize(256);
        dim3 gridSize((A_rows + blockSize.x - 1) / blockSize.x);
        addMultipleArrays<<<gridSize, blockSize>>>(
