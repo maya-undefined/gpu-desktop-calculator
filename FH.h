@@ -1,3 +1,7 @@
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
 #include "gdc.h"
 
 class FH {

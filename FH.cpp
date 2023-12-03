@@ -1,7 +1,3 @@
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <vector>
 #include "FH.h"
 #include "gdc.h"
 

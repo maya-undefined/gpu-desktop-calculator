@@ -13,15 +13,15 @@ int main(int argc, char *argv[]) {
     // Check for correct argument count
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0] << " <verb> <file1> <file2> <output_file>" << std::endl;
-        std::cert << "Verb: (add|mul)" << std::endl; 
+        std::cerr << "Verb: (add|mul|div|exp)" << std::endl; 
         return 1;
     }
 
-    // Read data from files
-    FH host_A_file(argv[2]);
-    FH host_B_file(argv[3]);
-
     std::string verb = std::string(argv[1]);
+    if (verb != "mul" && verb != "add" && verb != "div" && verb != "exp") {
+        std::cerr << "Verb: (add|mul|div|exp)" << std::endl; 
+        std::cerr << "Invalid verbs" << std::endl;
+    }
 
     // Write result to file
     std::ofstream outputFile(argv[4]);
@@ -29,6 +29,11 @@ int main(int argc, char *argv[]) {
     char* buffer = new char[_CHUNK_SIZE];
     outputFile.rdbuf()->pubsetbuf(buffer, _CHUNK_SIZE);
     // Allocate memory on the GPU
+
+    // Read data from files
+    FH host_A_file(argv[2]);
+    FH host_B_file(argv[3]);
+
     float *device_C;
     float *device_A, *device_B;
 
@@ -59,11 +64,32 @@ int main(int argc, char *argv[]) {
         // Launch the CUDA Kernel
         dim3 blockSize(256);
         dim3 gridSize((A_rows + blockSize.x - 1) / blockSize.x);
-        addMultipleArrays<<<gridSize, blockSize>>>(
+        if (verb == "add") {
+            addMultipleArrays<<<gridSize, blockSize>>>(
+                    device_A, device_B, device_C, 
+                    A_rows, B_rows, // rows
+                    A_cols, B_cols // columns
+                    ); 
+        } else
+        if (verb == "mul") {
+            mulMultipleArrays<<<gridSize, blockSize>>>(
                 device_A, device_B, device_C, 
                 A_rows, B_rows, // rows
                 A_cols, B_cols // columns
                 ); 
+        } else
+        if (verb == "div") {
+            divArrays<<<gridSize, blockSize>>>(
+                device_A, device_B, device_C,
+                A_rows, B_rows
+            );
+        } else
+        if (verb == "exp") {
+            expArrays<<<gridSize, blockSize>>>(
+                device_A, device_C,
+                A_rows
+            );
+        }
 
         // Copy result back to host
         // we only need to keep track of how many elements since we are using a flat array
