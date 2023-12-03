@@ -62,6 +62,26 @@ __global__ void expArrays(const float *A, float *C, int A_rows) {
     }
 }
 
+__global__ void sinArrays(const float *A, float *C, int A_rows) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < A_rows) {
+        C[i] = sinf(A[i]);
+    }
+}
+__global__ void cosArrays(const float *A, float *C, int A_rows) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < A_rows) {
+        C[i] = cosf(A[i]);
+    }
+}
+
+__global__ void tanArrays(const float *A, float *C, int A_rows) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < A_rows) {
+        C[i] = tanf(A[i]);
+    }
+}
+
 __global__ void complexPhysicsCalculation(const float *A, const float *B, float* C, int numElements) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < numElements) {
