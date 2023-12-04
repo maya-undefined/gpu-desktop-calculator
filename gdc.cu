@@ -33,7 +33,19 @@ int main(int argc, char *argv[]) {
     if (verb == "div") {
         Div div(argv[2], argv[3], argv[4]);
         div.dispatch();
-    }
+    } /*else
+    if (verb == "sin") {
+        Exp exp1(argv[2], argv[3]);
+        exp1.dispatch();
+    } else
+    if (verb == "cos") {
+        Exp exp1(argv[2], argv[3]);
+        exp1.dispatch();
+    } else
+    if (verb == "tan") {
+        Exp exp1(argv[2], argv[3]);
+        exp1.dispatch();
+    }*/
 
     return 0;
 }

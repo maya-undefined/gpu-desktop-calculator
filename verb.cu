@@ -130,3 +130,15 @@ void Mul::execute() {
               A_cols, B_cols // columns
        ); 
 }
+
+void Sin::execute() {
+
+}
+
+void Cos::execute() {
+       
+}
+
+void Tan::execute() {
+       
+}
