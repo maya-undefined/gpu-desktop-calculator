@@ -21,6 +21,10 @@ Definitely work-in-progress. I eventually want to do more complex calculations y
 ### install nvcc
 
 	sudo apt install nvidia-cuda-toolkit nvidia-container-toolkit docker.io
+
+### building
+
+	nvcc FH.cpp gdc.cu kernels.cu  verb.cu -o gdc
  
 ### usage
 
